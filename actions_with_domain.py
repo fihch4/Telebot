@@ -250,39 +250,27 @@ def rewrite_robots_sql(domain_id, user_tg_id):
 
 
 def new_robots_txt(domain_url, domain_id):
-    try:
+    slash = get_slash_domain(domain_url)
+    if slash == "slash_ok":
         robots_url = domain_url + 'robots.txt'
-        r = requests.get(robots_url, headers=useragent, allow_redirects=False, verify=False)
-        if r.status_code == 200:
-            robots_value = r.text
-            if 'user-agent:' in robots_value.lower():
-                hash_robots = hashlib.sha1(robots_value.encode('utf-8')).hexdigest()
-                date = datetime.datetime.now()
-                update_actual_robots(domain_id, date, hash_robots, robots_value)
-                status = "Success"
-                print(status)
-                return status
-            else:
-                status = "Error"
-                print(status + "1")
-                return status
-
-    except requests.exceptions.ConnectionError:
+    elif slash == "slash_not_ok":
         robots_url = domain_url + '/robots.txt'
-        r = requests.get(robots_url, headers=useragent, allow_redirects=False, verify=False)
-        if r.status_code == 200:
-            robots_value = r.text
-            if 'user-agent:' in robots_value.lower():
-                hash_robots = hashlib.sha1(robots_value.encode('utf-8')).hexdigest()
-                date = datetime.datetime.now()
-                insert_actual_robots(domain_id, date, hash_robots, robots_value)
-                print(robots_value)
-                status = "Success"
-                return status
-            else:
-                status = "Error"
-                print(status + "2")
-                return status
+    elif slash == "Error":
+        print("Ошибка определения количества слешей для robots.txt")
+    r = requests.get(robots_url, headers=useragent, allow_redirects=False, verify=False)
+    if r.status_code == 200:
+        robots_value = r.text
+        if 'user-agent:' in robots_value.lower():
+            hash_robots = hashlib.sha1(robots_value.encode('utf-8')).hexdigest()
+            date = datetime.datetime.now()
+            update_actual_robots(domain_id, date, hash_robots, robots_value)
+            status = "Success"
+            print(status)
+            return status
+        else:
+            status = "Error"
+            print(status)
+            return status
 
 
 def delete_domain_url(domain_url, user_tg_id):
