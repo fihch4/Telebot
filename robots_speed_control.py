@@ -9,6 +9,7 @@ from actions_with_domain import select_domain, get_slash_domain
 import urllib3
 from multiprocessing import Pool
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
 import time
 import telebot
 bot = telebot.TeleBot(token)

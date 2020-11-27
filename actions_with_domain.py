@@ -8,6 +8,7 @@ import hashlib
 import datetime
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
 
 
 def check_status_code_domain(domain_url):

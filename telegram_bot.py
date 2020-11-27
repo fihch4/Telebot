@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import config
 import telebot
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from telebot import types
 from actions_with_domain import domain_url_add_to_bd, \
     sql_select_domain, \
@@ -45,8 +47,10 @@ def handle_text(message):
                          f"✔️изменения в файле robots.txt;\n"
                          f"✔️дата освобождения;\n"
                          f"⚠️Если кто-то изменит robots.txt или домен будет недоступен, вы получите уведомление.\n"
-                         f"Формат добавления домена: <b>[протокол]</b>[адрес сайта]\n"
-                         f"Пример: [протокол] = https:// | http:// | https://www.",
+                         f"Примеры добавления домена:\n"
+                         f"https://site.ru\n"
+                         f"http://site.ru\n"
+                         f"https://www.site.ru",
                          reply_markup=back_button, parse_mode="HTML")
         bot.register_next_step_handler(message, add_site_bd)
 
@@ -263,5 +267,10 @@ def add_telephone(message):
         bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")
 
 # Запускаем постоянный опрос бота в Телеграме
-bot.polling(none_stop=True, interval=0)
+def main():
+    bot.polling(none_stop=True, interval=0)
+
+if __name__ == '__main__':
+    main()
+
 #
