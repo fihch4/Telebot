@@ -1,5 +1,8 @@
 #!/usr/bin/python3.8
 # -*- coding: utf-8 -*-
+import logging
+from datetime import time
+
 import config
 import telebot
 import urllib3
@@ -268,7 +271,12 @@ def add_telephone(message):
 
 # Запускаем постоянный опрос бота в Телеграме
 def main():
-    bot.polling(none_stop=True, interval=0)
+    try:
+        bot.polling(none_stop=True, interval=0)
+    except Exception as err:
+        logging.error(err)
+        time.sleep(5)
+        print("Internet error!")
 
 if __name__ == '__main__':
     main()
