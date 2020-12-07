@@ -148,7 +148,7 @@ def check_final_status_code(domain_url, domain_id, telegram_user_id):
         while status_code != 200:
             status_code = get_status_code_domain(domain_url)
             if num_cycle >= 1:
-                print("Пауза на текущий поток, так как домен недоступен")
+                print("Пауза на текущий поток, так как домен " + domain_url + "недоступен")
                 time.sleep(pause_sleep)
                 if num_cycle >= num_max_check:
                     break
@@ -165,7 +165,7 @@ def check_final_status_code(domain_url, domain_id, telegram_user_id):
             print("Домен: " + str(domain_url) + " НЕДОСТУПЕН. Надо отправить уведомление.")
             bot.send_message(chat_id=telegram_user_id, text=f"❗Внимание❗\n"
                                                             f"Домен: {domain_url} недоступен после {num_max_check}"
-                                                            f"повторных проверок. "
+                                                            f" повторных проверок. "
                                                             f"Общее время ожидания доступности домена составляет: "
                                                             f"{timeout_waiting_status_code} секунд.")
             status = "Error"
@@ -267,4 +267,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 #

@@ -1,8 +1,12 @@
 #!/usr/bin/python3.8
 # -*- coding: utf-8 -*-
+from random import randint
+
 import mysql.connector
 from config import *
 import re
+import csv
+
 
 def get_col_domains_from_user(user_tg_id):
     try:
@@ -14,7 +18,7 @@ def get_col_domains_from_user(user_tg_id):
         )
         sql = "SELECT COUNT(domain_url) FROM domains_table1 WHERE user_tg_id=%s"
         cursor = connection.cursor()
-        cursor.execute(sql, (user_tg_id, ))
+        cursor.execute(sql, (user_tg_id,))
         records = cursor.fetchall()
         for i in records:
             col_domains_from_user = i[0]
@@ -37,7 +41,7 @@ def get_telephone(user_tg_id):
         )
         sql = "SELECT telephone FROM users WHERE user_tg_id = %s"
         cursor = connection.cursor()
-        cursor.execute(sql, (user_tg_id, ))
+        cursor.execute(sql, (user_tg_id,))
         records = cursor.fetchall()
         for i in records:
             telephone_number = i[0]
@@ -101,13 +105,14 @@ def get_num_errors_response_code(user_tg_id):
         if (connection.is_connected()):
             connection.close()
 
+
 def get_uptime_for_user(user_tg_id):
     num_errors = get_num_errors_response_code(user_tg_id)
     dict_uptime = {
-        "tier_one":{"99.671":"1728"},
-        "tier_two":{"99.741":"1320"},
-        "tier_three":{"99.982":"96"},
-        "tier_four":{"99.995":"24"}
+        "tier_one": {"99.671": "1728"},
+        "tier_two": {"99.741": "1320"},
+        "tier_three": {"99.982": "96"},
+        "tier_four": {"99.995": "24"}
     }
 
     if num_errors <= float(dict_uptime['tier_one']["99.671"]):
@@ -119,6 +124,7 @@ def get_uptime_for_user(user_tg_id):
                 if num_errors <= float(dict_uptime['tier_four']["99.995"]):
                     uptime = "99.995"
     return uptime
+
 
 def get_date_and_domain_expired(user_tg_id):
     try:
@@ -172,5 +178,44 @@ def seven_correctly_telephone(telephone_from_user):
     else:
         result = 'Error'
         return result
+
+
+def generate_filename_robots_txt(user_tg_id):
+    random_number = randint(0, 50)
+    final_file_name = str(user_tg_id) + str(random_number) + '.csv'
+    return final_file_name
+
+
+def get_information_robots_txt_check_from_sql(user_tg_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "select distinct robots_txt_each_check.robots_encode, domains_table1.domain_url from robots_txt_each_check inner join " \
+              "domains_table1 on domains_table1.id = robots_txt_each_check.domain_id where " \
+              "domains_table1.user_tg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (user_tg_id,))
+        records = cursor.fetchall()
+        file_name = generate_filename_robots_txt(user_tg_id)
+        for i in records:
+            dict = {}
+            robots_txt = i[0].replace('\r', '')
+            domain_url = i[1]
+            dict[domain_url] = robots_txt
+            with open(file_name, mode="a", encoding='utf-8') as w_file:
+                file_writer = csv.writer(w_file, delimiter=",", lineterminator="\r")
+                file_writer.writerow([dict])
+        cursor.close()
+        return file_name
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
 
 #
