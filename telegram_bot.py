@@ -164,7 +164,7 @@ def handle_text(message):
         print(user_id)
         back_button = types.ReplyKeyboardMarkup(True, True)
         back_button.row('Назад')
-        bot.send_message(message.chat.id, f"Подготавливаю файлы. Пожалуйста, ожидайте.",
+        bot.send_message(message.chat.id, f"⌛ Подготавливаю файлы. Пожалуйста, ожидайте.",
                              reply_markup=back_button)
         robots = get_information_robots_txt_check_from_sql(user_id)
         print(robots)
@@ -172,17 +172,21 @@ def handle_text(message):
         print(speed)
         expired = get_file_expired(user_id)
         print(expired)
-        robots_open = open(robots, 'rb')
-        speed_open = open(speed, 'rb')
-        expired_open = open(expired, 'rb')
-        bot.send_document(message.chat.id, robots_open)
-        bot.send_document(message.chat.id, speed_open)
-        bot.send_document(message.chat.id, expired_open)
-        robots_open.close()
-        speed_open.close()
-        expired_open.close()
-        bot.send_message(message.chat.id, f"Файлы готовы. Для продолжения нажмите 'Назад' или /start",
-                             reply_markup=back_button)
+        try:
+            robots_open = open(robots, 'rb')
+            speed_open = open(speed, 'rb')
+            expired_open = open(expired, 'rb')
+            bot.send_document(message.chat.id, robots_open)
+            bot.send_document(message.chat.id, speed_open)
+            bot.send_document(message.chat.id, expired_open)
+            robots_open.close()
+            speed_open.close()
+            expired_open.close()
+            bot.send_message(message.chat.id, f"🔥 Файлы готовы. Для продолжения нажмите 'Назад' или /start",
+                                 reply_markup=back_button)
+        except FileNotFoundError:
+            bot.send_message(message.chat.id, f"⚠️ Ваша база данных пуста. Для продолжения нажмите 'Назад' или /start",
+                                 reply_markup=back_button)
 
 
 def add_site_bd(message):

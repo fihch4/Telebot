@@ -184,7 +184,7 @@ def seven_correctly_telephone(telephone_from_user):
 
 def generate_filename_robots_txt(user_tg_id):
     random_number = randint(0, 50)
-    final_file_name = '/robots_' + str(user_tg_id) + str(random_number) + '.csv'
+    final_file_name = 'robots_' + str(user_tg_id) + str(random_number) + '.csv'
     return final_file_name
 
 
@@ -222,7 +222,7 @@ def get_information_robots_txt_check_from_sql(user_tg_id):
 
 def generate_filename_speed_txt(user_tg_id):
     random_number = randint(0, 50)
-    final_file_name = '/speed_' + str(user_tg_id) + str(random_number) + '.csv'
+    final_file_name = 'speed_' + str(user_tg_id) + str(random_number) + '.csv'
     return final_file_name
 
 def get_information_speed_response_txt_check_from_sql(user_tg_id):
@@ -262,7 +262,7 @@ def get_information_speed_response_txt_check_from_sql(user_tg_id):
 
 def generate_filename_expired_txt(user_tg_id):
     random_number = randint(0, 50)
-    final_file_name = '/expired_' + str(user_tg_id) + str(random_number) + '.csv'
+    final_file_name = 'expired_' + str(user_tg_id) + str(random_number) + '.csv'
     return final_file_name
 
 
