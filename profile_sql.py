@@ -1,5 +1,7 @@
 #!/usr/bin/python3.8
 # -*- coding: utf-8 -*-
+import os
+import time
 from random import randint
 
 import mysql.connector
@@ -182,7 +184,7 @@ def seven_correctly_telephone(telephone_from_user):
 
 def generate_filename_robots_txt(user_tg_id):
     random_number = randint(0, 50)
-    final_file_name = 'robots_' + str(user_tg_id) + str(random_number) + '.csv'
+    final_file_name = '/robots_' + str(user_tg_id) + str(random_number) + '.csv'
     return final_file_name
 
 
@@ -220,7 +222,7 @@ def get_information_robots_txt_check_from_sql(user_tg_id):
 
 def generate_filename_speed_txt(user_tg_id):
     random_number = randint(0, 50)
-    final_file_name = 'speed_' + str(user_tg_id) + str(random_number) + '.csv'
+    final_file_name = '/speed_' + str(user_tg_id) + str(random_number) + '.csv'
     return final_file_name
 
 def get_information_speed_response_txt_check_from_sql(user_tg_id):
@@ -235,7 +237,7 @@ def get_information_speed_response_txt_check_from_sql(user_tg_id):
               "actual_speed_server.date from actual_speed_server inner join domains_table1 " \
               "on domains_table1.id = actual_speed_server.domain_id " \
               "where domains_table1.user_tg_id = %s " \
-              "order by actual_speed_server.date desc;"
+              "order by actual_speed_server.date desc"
         cursor = connection.cursor()
         cursor.execute(sql, (user_tg_id,))
         records = cursor.fetchall()
@@ -256,5 +258,50 @@ def get_information_speed_response_txt_check_from_sql(user_tg_id):
     finally:
         if (connection.is_connected()):
             connection.close()
+
+
+def generate_filename_expired_txt(user_tg_id):
+    random_number = randint(0, 50)
+    final_file_name = '/expired_' + str(user_tg_id) + str(random_number) + '.csv'
+    return final_file_name
+
+
+def get_file_expired(user_tg_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "select domains_table1.domain_url, expired.date_expired from expired " \
+              "inner join domains_table1 on domains_table1.id = expired.domain_id " \
+              "where domains_table1.user_tg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (user_tg_id,))
+        records = cursor.fetchall()
+        file_name = generate_filename_expired_txt(user_tg_id)
+        for i in records:
+            list_expired = []
+            domain = i[0]
+            date_expired = i[1]
+            list_expired.append(f"{domain};{date_expired}")
+            with open(file_name, mode="a", encoding='utf-8') as w_file:
+                file_writer = csv.writer(w_file, delimiter=",", lineterminator="\r")
+                file_writer.writerow([list_expired[0]])
+        cursor.close()
+        return file_name
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
+def delete_files(file_path):
+    try:
+        os.remove(file_path)
+        return "Success"
+    except PermissionError:
+        return "Error"
 
 #

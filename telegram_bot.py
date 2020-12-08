@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from datetime import time
+import os
 
 import config
 import telebot
@@ -17,7 +18,8 @@ from actions_with_domain import domain_url_add_to_bd, \
 from profile_sql import get_col_domains_from_user, \
     get_uptime_for_user, \
     get_date_and_domain_expired, \
-    correctly_telephone, insert_telephone, get_telephone
+    correctly_telephone, insert_telephone, get_telephone, get_file_expired, \
+    get_information_speed_response_txt_check_from_sql, get_information_robots_txt_check_from_sql, delete_files
 
 list_domains = ""
 
@@ -31,6 +33,7 @@ def get_text_messages(message):
     start_menu = types.ReplyKeyboardMarkup(True, True)
     start_menu.row('✅️Добавить сайт', '❌ Удалить сайт')
     start_menu.row('🖊️ Перезаписать HASH robots', '👀 Мой профиль')
+    start_menu.row('📈 Получить логи проверок')
     bot.send_message(message.chat.id, 'Стартовое меню', reply_markup=start_menu)
 
 
@@ -154,6 +157,32 @@ def handle_text(message):
     elif message.text == 'Назад':
         print(message.text)
         get_text_messages(message)
+
+    if message.text == '📈 Получить логи проверок':
+        print("Logs")
+        user_id = message.from_user.id
+        print(user_id)
+        back_button = types.ReplyKeyboardMarkup(True, True)
+        back_button.row('Назад')
+        bot.send_message(message.chat.id, f"Подготавливаю файлы. Пожалуйста, ожидайте.",
+                             reply_markup=back_button)
+        robots = get_information_robots_txt_check_from_sql(user_id)
+        print(robots)
+        speed = get_information_speed_response_txt_check_from_sql(user_id)
+        print(speed)
+        expired = get_file_expired(user_id)
+        print(expired)
+        robots_open = open(robots, 'rb')
+        speed_open = open(speed, 'rb')
+        expired_open = open(expired, 'rb')
+        bot.send_document(message.chat.id, robots_open)
+        bot.send_document(message.chat.id, speed_open)
+        bot.send_document(message.chat.id, expired_open)
+        robots_open.close()
+        speed_open.close()
+        expired_open.close()
+        bot.send_message(message.chat.id, f"Файлы готовы. Для продолжения нажмите 'Назад' или /start",
+                             reply_markup=back_button)
 
 
 def add_site_bd(message):
