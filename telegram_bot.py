@@ -303,7 +303,6 @@ def add_telephone(message):
     except ValueError:
         bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")
 
-# Запускаем постоянный опрос бота в Телеграме
 def main():
     try:
         bot.polling(none_stop=True, interval=0)
