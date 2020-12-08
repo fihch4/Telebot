@@ -19,7 +19,8 @@ from profile_sql import get_col_domains_from_user, \
     get_uptime_for_user, \
     get_date_and_domain_expired, \
     correctly_telephone, insert_telephone, get_telephone, get_file_expired, \
-    get_information_speed_response_txt_check_from_sql, get_information_robots_txt_check_from_sql, delete_files
+    get_information_speed_response_txt_check_from_sql, get_information_robots_txt_check_from_sql, \
+    operator_check_mobile_number
 
 list_domains = ""
 
@@ -294,10 +295,10 @@ def add_telephone(message):
                 bot.send_message(message.from_user.id, f"Указан некорректный номер телефона.\n"
                                                        f"Напишите /start и повторите команду")
             elif status_number == 'Success':
-                insert_telephone(message.text, user_id)
+                mobile_operator = operator_check_mobile_number(message.text)
+                brand = mobile_operator['brand']
+                insert_telephone(message.text, user_id, brand)
                 bot.send_message(message.from_user.id, f"Номер телефона успешно добавлен в ваш профиль.\n")
-
-
 
     except ValueError:
         bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")

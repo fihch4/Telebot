@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+import json
 from random import randint
-
+import requests
 import mysql.connector
 from config import *
 import re
@@ -59,7 +60,7 @@ def get_telephone(user_tg_id):
             connection.close()
 
 
-def insert_telephone(telephone_number, user_tg_id):
+def insert_telephone(telephone_number, user_tg_id, mobile_operator):
     try:
         connection = mysql.connector.connect(
             host=host,
@@ -67,9 +68,9 @@ def insert_telephone(telephone_number, user_tg_id):
             password=password,
             database=database_home
         )
-        sql = "INSERT INTO users (telephone, user_tg_id) VALUES (%s, %s)"
+        sql = "INSERT INTO users (telephone, user_tg_id, mobile_operator) VALUES (%s, %s, %s)"
         cursor = connection.cursor()
-        cursor.execute(sql, (telephone_number, user_tg_id))
+        cursor.execute(sql, (telephone_number, user_tg_id, mobile_operator))
         connection.commit()
         cursor.close()
     except mysql.connector.Error as error:
@@ -303,5 +304,11 @@ def delete_files(file_path):
         return "Success"
     except PermissionError:
         return "Error"
+
+def operator_check_mobile_number(telephone_number):
+    url = 'https://api.regius.name/iface/phone-number.php?phone=' + telephone_number +'&token=' + token_sms
+    r = requests.get(url)
+    return json.loads(r.text)
+
 
 #
