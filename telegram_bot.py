@@ -19,8 +19,7 @@ from profile_sql import get_col_domains_from_user, \
     get_uptime_for_user, \
     get_date_and_domain_expired, \
     correctly_telephone, insert_telephone, get_telephone, get_file_expired, \
-    get_information_speed_response_txt_check_from_sql, get_information_robots_txt_check_from_sql, \
-    operator_check_mobile_number
+    get_information_speed_response_txt_check_from_sql, get_information_robots_txt_check_from_sql, update_mobile_operator
 
 list_domains = ""
 
@@ -155,8 +154,10 @@ def handle_text(message):
                                           f"✉️ На указанный номер будут поступать SMS-уведомления о доступности сайтов.",
                          reply_markup=back_button, parse_mode="HTML")
         bot.register_next_step_handler(message, add_telephone)
+        print("777")
     elif message.text == 'Назад':
         print(message.text)
+        print("555")
         get_text_messages(message)
 
     if message.text == '📈 Получить логи проверок':
@@ -292,13 +293,50 @@ def add_telephone(message):
             status_number = correctly_telephone(message.text)
             print(status_number)
             if status_number == 'Error':
+                print("1")
                 bot.send_message(message.from_user.id, f"Указан некорректный номер телефона.\n"
                                                        f"Напишите /start и повторите команду")
             elif status_number == 'Success':
-                mobile_operator = operator_check_mobile_number(message.text)
-                brand = mobile_operator['brand']
-                insert_telephone(message.text, user_id, brand)
-                bot.send_message(message.from_user.id, f"Номер телефона успешно добавлен в ваш профиль.\n")
+                telephone = message.text
+                print(telephone)
+                bot.send_message(message.from_user.id, f"Ваш оператор:\n"
+                                                       f"/Tele2\n"
+                                                       f"/MTS\n"
+                                                       f"/Yota\n"
+                                                       f"/Megafon\n"
+                                                       f"/Beeline")
+                insert_telephone(message.text, user_id)
+                bot.register_next_step_handler(message, id_operator)
+
+    except ValueError:
+        bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")
+
+
+def id_operator(message):
+    try:
+        if message.text == 'Назад':
+            get_text_messages(message)
+        else:
+            user_id = message.from_user.id
+            if message.text == '/Tele2':
+                update_mobile_operator(user_id, "Tele2")
+                bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")
+            elif message.text == '/MTS':
+                update_mobile_operator(user_id, "MTS")
+                bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")
+            elif message.text == '/Yota':
+                update_mobile_operator(user_id, "Yota")
+                bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")
+            elif message.text == '/Megafon':
+                update_mobile_operator(user_id, "Megafon")
+                bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")
+            elif message.text == '/Beeline':
+                update_mobile_operator(user_id, "Beeline")
+                bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")
+            else:
+                print("Ошибка указания оператора")
+                bot.send_message(message.from_user.id, f"Указан некорректный моб. оператор. "
+                                                       f"Напишите /start и повторите команду")
 
     except ValueError:
         bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")

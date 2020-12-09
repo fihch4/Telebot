@@ -60,7 +60,7 @@ def get_telephone(user_tg_id):
             connection.close()
 
 
-def insert_telephone(telephone_number, user_tg_id, mobile_operator):
+def insert_telephone(telephone_number, user_tg_id, mobile_operator="Null"):
     try:
         connection = mysql.connector.connect(
             host=host,
@@ -305,10 +305,24 @@ def delete_files(file_path):
     except PermissionError:
         return "Error"
 
-def operator_check_mobile_number(telephone_number):
-    url = 'https://api.regius.name/iface/phone-number.php?phone=' + telephone_number +'&token=' + token_sms
-    r = requests.get(url)
-    return json.loads(r.text)
+def update_mobile_operator(user_tg_id, mobile_operator):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "UPDATE users SET mobile_operator = %s WHERE user_tg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (mobile_operator, user_tg_id))
+        connection.commit()
+        cursor.close()
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
 
+    finally:
+        if (connection.is_connected()):
+            connection.close()
 
 #
