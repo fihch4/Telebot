@@ -19,7 +19,8 @@ from profile_sql import get_col_domains_from_user, \
     get_uptime_for_user, \
     get_date_and_domain_expired, \
     correctly_telephone, insert_telephone, get_telephone, get_file_expired, \
-    get_information_speed_response_txt_check_from_sql, get_information_robots_txt_check_from_sql, update_mobile_operator
+    get_information_speed_response_txt_check_from_sql, get_information_robots_txt_check_from_sql, \
+    update_mobile_operator, select_interval_notification, update_interval_notification
 
 list_domains = ""
 
@@ -99,11 +100,11 @@ def handle_text(message):
         if len(actual_telephone_user) == 0:
             back_button.row('Добавить номер телефона (только РФ)')
         back_button.row('Обратная связь')
+        back_button.row('Изменить интервал уведомлений')
         back_button.row('Назад')
         print(message.chat.id)
         print(message.text)
         col = get_col_domains_from_user(message.chat.id)
-
         if col == 0:
             uptime = "Недостаточно данных"
         else:
@@ -154,10 +155,19 @@ def handle_text(message):
                                           f"✉️ На указанный номер будут поступать SMS-уведомления о доступности сайтов.",
                          reply_markup=back_button, parse_mode="HTML")
         bot.register_next_step_handler(message, add_telephone)
-        print("777")
+    elif message.text == 'Изменить интервал уведомлений':
+        print(message.chat.id)
+        print(message.text)
+        back_button = types.ReplyKeyboardMarkup(True, True)
+        back_button.row('Назад')
+        bot.send_message(message.chat.id, f"Стандартный интервал уведомлений в случае ошибок: <b>600</b> секунд.\n"
+                                          f"Если вы получаете уведомления часто, укажите требуемый интервал.\n"
+                                          f"👇<b>Пришлите мне целое число (секунды)</b>👇\n",
+                         reply_markup=back_button, parse_mode="HTML")
+        bot.register_next_step_handler(message, add_seconds_timedelta)
+
     elif message.text == 'Назад':
         print(message.text)
-        print("555")
         get_text_messages(message)
 
     if message.text == '📈 Получить логи проверок':
@@ -190,6 +200,22 @@ def handle_text(message):
             bot.send_message(message.chat.id, f"⚠️ Ваша база данных пуста. Для продолжения нажмите 'Назад' или /start",
                                  reply_markup=back_button)
 
+def add_seconds_timedelta(message):
+    if message.text == 'Назад':
+        get_text_messages(message)
+    else:
+        try:
+            user_id = message.from_user.id
+            select_interval_notification(user_id)
+            seconds = int(message.text)
+            update_interval_notification(user_id, seconds)
+            print(seconds)
+            bot.send_message(message.chat.id, f"✅ Интервал уведомлений успешно изменен.\n"
+                                              f"Для продолжения нажмите 'Назад' или /start")
+        except ValueError:
+            bot.send_message(message.chat.id, f"Вы указали некорректное число. "
+                                              f"Для продолжения нажмите 'Назад' или /start")
+
 
 def add_site_bd(message):
     try:
@@ -197,9 +223,7 @@ def add_site_bd(message):
         if message.text == 'Назад':
             get_text_messages(message)
         else:
-            print("Зашли в else")
             user_id = message.from_user.id
-            # print(user_id + " User ID")
             print(message.from_user.username)
             domain_name_telegram = message.text
             print(f"USER ID: {user_id} пытается добавить домен {domain_name_telegram}")
@@ -293,7 +317,6 @@ def add_telephone(message):
             status_number = correctly_telephone(message.text)
             print(status_number)
             if status_number == 'Error':
-                print("1")
                 bot.send_message(message.from_user.id, f"Указан некорректный номер телефона.\n"
                                                        f"Напишите /start и повторите команду")
             elif status_number == 'Success':
@@ -309,7 +332,7 @@ def add_telephone(message):
                 bot.register_next_step_handler(message, id_operator)
 
     except ValueError:
-        bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")
+        bot.send_message(message.from_user.id, f"Указан некорректный номер. Напишите /start и повторите команду")
 
 
 def id_operator(message):
@@ -323,7 +346,8 @@ def id_operator(message):
                 bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")
             elif message.text == '/MTS':
                 update_mobile_operator(user_id, "MTS")
-                bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")
+                bot.send_message(message.from_user.id, f"Рассылка на MTS невозможна. Для продолжения напишите /start и"
+                                                       f" добавьте номер другого оператора.")
             elif message.text == '/Yota':
                 update_mobile_operator(user_id, "Yota")
                 bot.send_message(message.from_user.id, f"Добавление номера завершено. Для продолжения напишите /start")

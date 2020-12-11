@@ -34,6 +34,29 @@ def get_col_domains_from_user(user_tg_id):
             connection.close()
 
 
+def get_previous_date_notification_user(domain_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "select date from log_verification where status = 'Error' and domain_id = %s order by date desc limit 1"
+        cursor = connection.cursor()
+        cursor.execute(sql, (domain_id,))
+        records = cursor.fetchall()
+        for i in records:
+            previous_date = i[0]
+        cursor.close()
+        return previous_date
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
+
 def get_telephone(user_tg_id):
     try:
         connection = mysql.connector.connect(
@@ -76,6 +99,73 @@ def insert_telephone(telephone_number, user_tg_id, mobile_operator="Null"):
     except mysql.connector.Error as error:
         print("Failed to insert record into Laptop table {}".format(error))
 
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
+
+def insert_interval_notification(user_tg_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "INSERT INTO interval_notification_users (interval_notification, user_tg_id) VALUES (%s, %s)"
+        cursor = connection.cursor()
+        cursor.execute(sql, ("600", user_tg_id ))
+        connection.commit()
+        cursor.close()
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
+
+def select_interval_notification(user_tg_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "SELECT interval_notification FROM interval_notification_users WHERE user_tg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (user_tg_id, ))
+        records = cursor.fetchall()
+        for i in records:
+            interval_notification = i[0]
+        cursor.close()
+        return interval_notification
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+    except UnboundLocalError:
+        insert_interval_notification(user_tg_id)
+        interval_notification = "600"
+        return interval_notification
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
+
+def update_interval_notification(user_tg_id, interval_notification):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "UPDATE interval_notification_users SET interval_notification = %s WHERE user_tg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (interval_notification, user_tg_id, ))
+        connection.commit()
+        cursor.close()
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
     finally:
         if (connection.is_connected()):
             connection.close()

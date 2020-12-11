@@ -3,10 +3,12 @@
 import requests
 import mysql.connector
 from config import *
+from sms_sender import *
 import datetime
 import hashlib
 from actions_with_domain import select_domain, get_slash_domain
 import urllib3
+from profile_sql import get_previous_date_notification_user, select_interval_notification
 from multiprocessing import Pool
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
@@ -161,13 +163,21 @@ def check_final_status_code(domain_url, domain_id, telegram_user_id):
             return status
         else:
             timeout_waiting_status_code = num_max_check * pause_sleep
-            insert_status_log_verification(domain_id, "Error", "Response Code")
-            print("Домен: " + str(domain_url) + " НЕДОСТУПЕН. Надо отправить уведомление.")
-            bot.send_message(chat_id=telegram_user_id, text=f"❗Внимание❗\n"
-                                                            f"Домен: {domain_url} недоступен после {num_max_check}"
-                                                            f" повторных проверок. "
-                                                            f"Общее время ожидания доступности домена составляет: "
-                                                            f"{timeout_waiting_status_code} секунд.")
+            """Получаем предыдущую дату уведомления"""
+            previous_date_notification = get_previous_date_notification_user(domain_id)
+            """Рассчитываем сколько секунд прошло в разнице между текущим временем и предыдущем"""
+            date_now = datetime.datetime.now()
+            diff = date_now - previous_date_notification
+            seconds = diff.seconds  # разница в секундах
+            if int(seconds) >= int(select_interval_notification(telegram_user_id)):
+                bot.send_message(chat_id=telegram_user_id, text=f"❗Внимание❗\n"
+                                                                f"Домен: {domain_url} недоступен после {num_max_check}"
+                                                                f" повторных проверок. "
+                                                                f"Общее время ожидания доступности домена составляет: "
+                                                                f"{timeout_waiting_status_code} секунд.")
+                insert_status_log_verification(domain_id, "Error", "Response Code")
+                print("Домен: " + str(domain_url) + " НЕДОСТУПЕН. Надо отправить уведомление.")
+
             status = "Error"
             return status
     except requests.exceptions.ConnectionError:
@@ -257,6 +267,16 @@ def speed_server_and_robots_hash(domain_url):
 
 def main():
     domains = domain_list()
+    # number = ''
+    # sms = SMS()
+    # sms.send_to.append(number)
+    # sms.message = 'HELLO WORLD'
+    # #
+    # smsSender = SendSMS(operator='Tele2')
+    # smsSender.send(sms, operator='Tele2')
+    # print('Done!')
+    # time.sleep(20)
+
     threads = len(domains) // 2
     if threads >= 15:
         threads = 10
@@ -264,6 +284,8 @@ def main():
         threads = 1
     with Pool(threads) as p:
         p.map(speed_server_and_robots_hash, domains)
+
+
 
 if __name__ == '__main__':
     main()
