@@ -226,6 +226,8 @@ def add_site_bd(message):
             user_id = message.from_user.id
             print(message.from_user.username)
             domain_name_telegram = message.text
+            domain_name_telegram = str(domain_name_telegram).lower()
+            print(domain_name_telegram)
             print(f"USER ID: {user_id} пытается добавить домен {domain_name_telegram}")
             status = domain_url_add_to_bd(domain_name_telegram, user_id)
             print(status)
