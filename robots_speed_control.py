@@ -8,7 +8,7 @@ import datetime
 import hashlib
 from actions_with_domain import select_domain, get_slash_domain
 import urllib3
-from profile_sql import get_previous_date_notification_user, select_interval_notification
+from profile_sql import get_previous_date_notification_user, select_interval_notification, select_telephone_and_operator
 from multiprocessing import Pool
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
@@ -170,6 +170,17 @@ def check_final_status_code(domain_url, domain_id, telegram_user_id):
             diff = date_now - previous_date_notification
             seconds = diff.seconds  # разница в секундах
             if int(seconds) >= int(select_interval_notification(telegram_user_id)):
+                telephone_and_operator = select_telephone_and_operator(telegram_user_id)
+                if telephone_and_operator:
+                    number = telephone_and_operator['telephone']
+                    operator = telephone_and_operator['operator']
+                    sms = SMS()
+                    sms.send_to.append(number)
+                    sms.message = f"Домен: {domain_url} недоступен"
+                    smsSender = SendSMS(operator=operator)
+                    smsSender.send(sms, operator=operator)
+                    print('SMS отправлено')
+
                 bot.send_message(chat_id=telegram_user_id, text=f"❗Внимание❗\n"
                                                                 f"Домен: {domain_url} недоступен после {num_max_check}"
                                                                 f" повторных проверок. "
@@ -267,16 +278,6 @@ def speed_server_and_robots_hash(domain_url):
 
 def main():
     domains = domain_list()
-    # number = ''
-    # sms = SMS()
-    # sms.send_to.append(number)
-    # sms.message = 'HELLO WORLD'
-    # #
-    # smsSender = SendSMS(operator='Tele2')
-    # smsSender.send(sms, operator='Tele2')
-    # print('Done!')
-    # time.sleep(20)
-
     threads = len(domains) // 2
     if threads >= 15:
         threads = 10
