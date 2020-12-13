@@ -415,4 +415,31 @@ def update_mobile_operator(user_tg_id, mobile_operator):
         if (connection.is_connected()):
             connection.close()
 
+
+def select_telephone_and_operator(user_tg_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "select telephone, mobile_operator from users where user_tg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (user_tg_id,))
+        records = cursor.fetchall()
+        dict_tel_operator = {}
+        for i in records:
+            telephone = i[0]
+            mobile_operator = i[1]
+            dict_tel_operator['telephone'] = telephone
+            dict_tel_operator['operator'] = mobile_operator
+        cursor.close()
+        return dict_tel_operator
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
 #
