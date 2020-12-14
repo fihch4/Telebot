@@ -174,12 +174,13 @@ def check_final_status_code(domain_url, domain_id, telegram_user_id):
                 if telephone_and_operator:
                     number = telephone_and_operator['telephone']
                     operator = telephone_and_operator['operator']
-                    sms = SMS()
-                    sms.send_to.append(number)
-                    sms.message = f"Домен: {domain_url} недоступен"
-                    smsSender = SendSMS(operator=operator)
-                    smsSender.send(sms, operator=operator)
-                    print('SMS отправлено')
+                    if operator != 'Null':
+                        sms = SMS()
+                        sms.send_to.append(number)
+                        sms.message = f"Домен: {domain_url} недоступен"
+                        smsSender = SendSMS(operator=operator)
+                        smsSender.send(sms, operator=operator)
+                        print('SMS отправлено')
 
                 bot.send_message(chat_id=telegram_user_id, text=f"❗Внимание❗\n"
                                                                 f"Домен: {domain_url} недоступен после {num_max_check}"
