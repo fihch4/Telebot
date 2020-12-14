@@ -256,9 +256,9 @@ def add_site_bd(message):
             elif status == "Error0":
                 delete_domain_url(domain_name_telegram, user_id)
                 bot.send_message(message.from_user.id,
-                                 f"❌ Ошибка добавления. Ваш сервер заблокировал нашего бота или вы прислали некорректный "
-                                 f"домен.\n"
-                                 f"Скорректируйте работу своего сервера или не добавляйте этот домен.\n"
+                                 f"❌ Ошибка добавления. Ваш сервер заблокировал нашего бота или вы прислали "
+                                 f"некорректный домен.\n Скорректируйте работу своего сервера или не добавляйте этот "
+                                 f"домен.\n "
                                  f"Для продолжения напишите /start")
             else:
                 bot.send_message(message.from_user.id, f"Неизвестная ошибка. Напишите /start")
@@ -326,9 +326,13 @@ def add_telephone(message):
                 print(telephone)
                 bot.send_message(message.from_user.id, f"Ваш оператор:\n"
                                                        f"/Tele2\n"
+                                                       f"\n"
                                                        f"/MTS\n"
+                                                       f"\n"
                                                        f"/Yota\n"
+                                                       f"\n"
                                                        f"/Megafon\n"
+                                                       f"\n"
                                                        f"/Beeline")
                 insert_telephone(message.text, user_id)
                 bot.register_next_step_handler(message, id_operator)
