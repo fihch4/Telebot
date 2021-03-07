@@ -3,7 +3,8 @@
 import logging
 from datetime import time
 import os
-
+import subprocess
+import time
 import config
 import telebot
 import urllib3
@@ -372,12 +373,24 @@ def id_operator(message):
         bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")
 
 def main():
-    try:
-        bot.polling(none_stop=True, interval=0)
-    except Exception as err:
-        logging.error(err)
-        time.sleep(5)
-        print("Internet error!")
+    com = 'pgrep -f telegram_bot.py'
+    p = subprocess.Popen([com], stdout=subprocess.PIPE, shell=True)
+    res = p.communicate()[0]
+    if isinstance(res, bytes):
+        res = res.decode("utf-8")
+    res = [str(x) for x in res.split('\n') if len(x) > 0]
+    print('Ожидаем 10 секунд')
+    time.sleep(10)
+    if len(res) >= 3:
+        print(len(res))
+        print('Процесс запущен. Запуск не требуется.')
+    else:
+        try:
+            bot.polling(none_stop=True, interval=0)
+        except Exception as err:
+            logging.error(err)
+            time.sleep(5)
+            print("Internet error!")
 
 if __name__ == '__main__':
     main()
