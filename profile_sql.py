@@ -1,24 +1,35 @@
 #!/usr/bin/python3.8
 # -*- coding: utf-8 -*-
 import os
-import time
-import json
 from random import randint
-import requests
 import mysql.connector
 from config import *
 import re
 import csv
 
+class SQL_connection:
+    def __init__(self, db_host, db_user, db_password, db_name):
+        self.host = db_host
+        self.name = db_name
+        self.user = db_user
+        self.password = db_password
+        self.conn = None
+
+    def get_conn(self):
+        if self.conn is None:
+            self.conn = mysql.connector.connect(
+                host=self.host,
+                database=self.name,
+                user=self.user,
+                password=self.password
+            )
+        return self.conn
+
 
 def get_col_domains_from_user(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "SELECT COUNT(domain_url) FROM domains_table1 WHERE user_tg_id=%s"
         cursor = connection.cursor()
         cursor.execute(sql, (user_tg_id,))
@@ -36,12 +47,8 @@ def get_col_domains_from_user(user_tg_id):
 
 def get_previous_date_notification_user(domain_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "select date from log_verification where status = 'Error' and domain_id = %s order by date desc limit 1"
         cursor = connection.cursor()
         cursor.execute(sql, (domain_id,))
@@ -59,12 +66,8 @@ def get_previous_date_notification_user(domain_id):
 
 def get_telephone(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "SELECT telephone FROM users WHERE user_tg_id = %s"
         cursor = connection.cursor()
         cursor.execute(sql, (user_tg_id,))
@@ -85,12 +88,8 @@ def get_telephone(user_tg_id):
 
 def insert_telephone(telephone_number, user_tg_id, mobile_operator="Null"):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "INSERT INTO users (telephone, user_tg_id, mobile_operator) VALUES (%s, %s, %s)"
         cursor = connection.cursor()
         cursor.execute(sql, (telephone_number, user_tg_id, mobile_operator))
@@ -106,12 +105,8 @@ def insert_telephone(telephone_number, user_tg_id, mobile_operator="Null"):
 
 def insert_interval_notification(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "INSERT INTO interval_notification_users (interval_notification, user_tg_id) VALUES (%s, %s)"
         cursor = connection.cursor()
         cursor.execute(sql, ("600", user_tg_id ))
@@ -126,12 +121,8 @@ def insert_interval_notification(user_tg_id):
 
 def select_interval_notification(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "SELECT interval_notification FROM interval_notification_users WHERE user_tg_id = %s"
         cursor = connection.cursor()
         cursor.execute(sql, (user_tg_id, ))
@@ -153,12 +144,8 @@ def select_interval_notification(user_tg_id):
 
 def update_interval_notification(user_tg_id, interval_notification):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "UPDATE interval_notification_users SET interval_notification = %s WHERE user_tg_id = %s"
         cursor = connection.cursor()
         cursor.execute(sql, (interval_notification, user_tg_id, ))
@@ -173,12 +160,8 @@ def update_interval_notification(user_tg_id, interval_notification):
 
 def get_num_errors_response_code(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "SELECT count(log_verification.status) " \
               "FROM log_verification INNER JOIN domains_table1 " \
               "ON domains_table1.id = log_verification.domain_id " \
@@ -221,12 +204,8 @@ def get_uptime_for_user(user_tg_id):
 
 def get_date_and_domain_expired(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "SELECT domains_table1.domain_url, " \
               "domains_table1.id, domains_table1.user_tg_id, expired.date_expired, expired.difference_days FROM " \
               "domains_table1 INNER JOIN expired ON expired.domain_id = domains_table1.id " \
@@ -281,12 +260,8 @@ def generate_filename_robots_txt(user_tg_id):
 
 def get_information_robots_txt_check_from_sql(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "select distinct robots_txt_each_check.robots_encode, domains_table1.domain_url from robots_txt_each_check inner join " \
               "domains_table1 on domains_table1.id = robots_txt_each_check.domain_id where " \
               "domains_table1.user_tg_id = %s"
@@ -316,14 +291,11 @@ def generate_filename_speed_txt(user_tg_id):
     final_file_name = 'speed_' + str(user_tg_id) + str(random_number) + '.csv'
     return final_file_name
 
+
 def get_information_speed_response_txt_check_from_sql(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "select domains_table1.domain_url, actual_speed_server.speed_response, " \
               "actual_speed_server.date from actual_speed_server inner join domains_table1 " \
               "on domains_table1.id = actual_speed_server.domain_id " \
@@ -359,12 +331,8 @@ def generate_filename_expired_txt(user_tg_id):
 
 def get_file_expired(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "select domains_table1.domain_url, expired.date_expired from expired " \
               "inner join domains_table1 on domains_table1.id = expired.domain_id " \
               "where domains_table1.user_tg_id = %s"
@@ -397,12 +365,8 @@ def delete_files(file_path):
 
 def update_mobile_operator(user_tg_id, mobile_operator):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "UPDATE users SET mobile_operator = %s WHERE user_tg_id = %s"
         cursor = connection.cursor()
         cursor.execute(sql, (mobile_operator, user_tg_id))
@@ -418,12 +382,8 @@ def update_mobile_operator(user_tg_id, mobile_operator):
 
 def select_telephone_and_operator(user_tg_id):
     try:
-        connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database_home
-        )
+        database_object_connection = SQL_connection(host, user, password, database_home)
+        connection = database_object_connection.get_conn()
         sql = "select telephone, mobile_operator from users where user_tg_id = %s"
         cursor = connection.cursor()
         cursor.execute(sql, (user_tg_id,))
@@ -441,5 +401,6 @@ def select_telephone_and_operator(user_tg_id):
     finally:
         if (connection.is_connected()):
             connection.close()
+
 
 #
